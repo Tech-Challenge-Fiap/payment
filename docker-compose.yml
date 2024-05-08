@@ -1,0 +1,42 @@
+version: '3'
+services:
+  # dbpayment:
+  #   image: postgres:13  # Use uma imagem oficial do PostgreSQL
+  #   environment:
+  #     POSTGRES_DB: paymentdb  # Nome do banco de dados
+  #     POSTGRES_USER: payment  # Nome de usuário do banco de dados
+  #     POSTGRES_PASSWORD: myapppaymentpassword  # Senha do banco de dados
+  #   ports:
+  #     - "5432:5432"  # Mapeie a porta do PostgreSQL do contêiner para a porta do host
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U payment -d paymentdb"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  dbfinancial:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: myappuser
+      MONGO_INITDB_ROOT_PASSWORD: myapppassword
+    ports:
+      - "27017:27017"
+    volumes:
+      - /home/renatogroffe/Desenvolvimento/Docker/Volumes/MongoDB:/data/db
+  paymentapi:
+    image: payment:latest
+    build:
+      context: .
+      dockerfile: Dockerfile  # Nome do seu Dockerfile de desenvolvimento
+    ports:
+      - "5000:5000"  # Mapeamento da porta do contêiner para a porta do host
+    volumes:
+      - .:/app  # Mapeamento do diretório local para o diretório de trabalho no contêiner
+    environment:
+      POSTGRES_DB: paymentdb  # Nome do banco de dados
+      POSTGRES_USER: payment  # Nome de usuário do banco de dados
+      POSTGRES_PASSWORD: myapppaymentpassword  # Senha do banco de dados
+      POSTGRES_SERVICE_HOST: dbpayment  # Host do banco de dados
+      FLASK_ENV: development  # Configuração da variável de ambiente FLASK_ENV
+    depends_on:
+      dbfinancial:
+        condition: service_started
