@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class PaymentServicePort:
+class PaymentProviderPort:
     @classmethod
     @abstractmethod
     def create_qr_code_pix_payment(cls, payment_id) -> str:

@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fiaptechchallenge
+  name: paymentapp
 spec:
   selector:
     matchLabels:
-      app: fiaptechchallenge
+      app: paymentapp
   replicas: 1
   template:
     metadata:
       labels:
-        app: fiaptechchallenge
+        app: paymentapp
     spec:
       containers:
-      - name: fiaptechchallenge
+      - name: paymentapp
         image: DOCKER_IMAGE
         resources:
           limits:
@@ -40,11 +40,9 @@ spec:
           failureThreshold: 3
           periodSeconds: 30
         env:
-          - name: POSTGRES_DB
-            value: VAL_POSTGRES_DB_NAME
-          - name: POSTGRES_USER
-            value: VAL_POSTGRES_DB_USER
-          - name: POSTGRES_PASSWORD
-            value: VAL_POSTGRES_DB_PASSWORD
-          - name: POSTGRES_SERVICE_HOST
-            value: VAL_POSTGRES_DB_HOST
+          - name: MONGO_USERNAME
+            value: VAL_MONGO_USERNAME
+          - name: MONGO_PASSWORD
+            value: VAL_MONGO_PASSWORD
+          - name: MONGO_HOST
+            value: VAL_MONGO_HOST

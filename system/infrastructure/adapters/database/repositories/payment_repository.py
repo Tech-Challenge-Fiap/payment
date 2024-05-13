@@ -1,15 +1,12 @@
 from datetime import datetime
-from decimal import Decimal
-import random
+from typing import List
 from pymongo.errors import PyMongoError
-from psycopg2 import IntegrityError
 from system.application.ports.payment_port import PaymentPort
 from system.domain.entities.payment import PaymentEntity
 from system.domain.enums.enums import PaymentStatusEnum
 from system.application.exceptions.repository_exception import DataRepositoryExeption
 from uuid import uuid1
 # from system.infrastructure.adapters.database.models import db
-from system.infrastructure.adapters.database.models.payment_model import PaymentModel
 from system.infrastructure.adapters.database.connection import Connection
 
 
@@ -57,3 +54,8 @@ class PaymentRepository(PaymentPort):
         query = {"_id": payment_id}
         payment = db.payment.find_one(query)
         return PaymentEntity.model_validate(payment)
+
+    @classmethod
+    def get_payments(cls) -> List[PaymentEntity]:
+        payments = db.payment.find({})
+        return [PaymentEntity.model_validate(payment) for payment in payments if isinstance(payment["_id"], str)]

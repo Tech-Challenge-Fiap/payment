@@ -5,8 +5,7 @@ from flask import Response
 
 from system.domain.enums.enums import PaymentStatusEnum
 
-
-class CreatePaymentResponse(Response):
+class Payment(Response):
     order_id: int
     qr_code: str
     status_updated_at: datetime
@@ -16,3 +15,11 @@ class CreatePaymentResponse(Response):
     class Config:
         from_attributes = True
         use_enum_values = True
+
+
+class CreatePaymentResponse(Payment):
+    pass
+
+
+class GetPaymentsResponse(Response):
+    payments: List[Payment]

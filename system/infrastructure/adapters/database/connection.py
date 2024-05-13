@@ -2,9 +2,9 @@ import os
 from pymongo import MongoClient
 
 db_port = os.environ.get("MONGO_PORT", 27017)
-db_user = os.environ.get("MONGO_USER", "myappuser")
+db_user = os.environ.get("MONGO_USERNAME", "myappuser")
 db_pass = os.environ.get("MONGO_PASSWORD", "myapppassword")
-db_host = os.environ.get("MONGO_SERVICE_HOST", "localhost")
+db_host = os.environ.get("MONGO_HOST", "localhost")
 
 config={
     "host": db_host,

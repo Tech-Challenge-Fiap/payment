@@ -40,3 +40,13 @@ def create_payment():
     except InfrastructureError:
         return {"error": "Internal Error"}, 500
     return payment.response
+
+
+@app.route("/get_payments", methods=["GET"])
+# @require_auth
+def get_payments():
+    try:
+        payment = payment_usecase.GetPayments.execute()
+    except InfrastructureError:
+        return {"error": "Internal Error"}, 500
+    return payment.response

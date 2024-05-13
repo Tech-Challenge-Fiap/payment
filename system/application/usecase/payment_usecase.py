@@ -1,5 +1,5 @@
 from flask_restful import Resource
-from system.application.dto.requests.payment_response import CreatePaymentResponse
+from system.application.dto.requests.payment_response import CreatePaymentResponse, GetPaymentsResponse
 from system.application.exceptions.default_exceptions import InfrastructureError
 from system.application.exceptions.repository_exception import DataRepositoryExeption
 from system.application.usecase.usecases import UseCase
@@ -41,5 +41,14 @@ class CreatePayment(UseCase, Resource):
         except DataRepositoryExeption as err:
             raise InfrastructureError(str(err))
         return CreatePaymentResponse(payment.model_dump())
+
+
+class GetPayments(UseCase, Resource):
+    def execute() -> GetPaymentsResponse:
+        try:
+            payments = PaymentRepository.get_payments()
+        except DataRepositoryExeption as err:
+            raise InfrastructureError(str(err))
+        return GetPaymentsResponse({"payments": [payment.model_dump() for payment in payments]}) 
         
         
