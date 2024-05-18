@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: paymentapp
+  name: payment-app
 spec:
   selector:
     matchLabels:
-      app: paymentapp
+      app: payment-app
   replicas: 1
   template:
     metadata:
       labels:
-        app: paymentapp
+        app: payment-app
     spec:
       containers:
-      - name: paymentapp
-        image: DOCKER_IMAGE
+      - name: payment-app
+        image: barbosaleandro/payment:latest
         resources:
           limits:
             memory: "128Mi"
@@ -41,8 +41,14 @@ spec:
           periodSeconds: 30
         env:
           - name: MONGO_USERNAME
-            value: VAL_MONGO_USERNAME
+            valueFrom:
+                secretKeyRef:
+                  name: payment-database-secret-config
+                  key: username
           - name: MONGO_PASSWORD
-            value: VAL_MONGO_PASSWORD
+            valueFrom:
+                secretKeyRef:
+                  name: payment-database-secret-config
+                  key: password
           - name: MONGO_HOST
-            value: VAL_MONGO_HOST
+            value: payment-mongo-svc
