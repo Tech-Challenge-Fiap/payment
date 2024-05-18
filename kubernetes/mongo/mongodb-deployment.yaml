@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: mongo
-  name: mongo
+    app: payment-mongo
+  name: payment-mongo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mongo
+      app: payment-mongo
   strategy: {}
   template:
     metadata:
       labels:
-        app: mongo
+        app: payment-mongo
     spec:
       containers:
       - image: mongo
-        name: mongo
+        name: payment-mongo
         args: ["--dbpath","/data/db"]
         livenessProbe:
           exec:
@@ -43,9 +43,15 @@ spec:
           failureThreshold: 6
         env:
         - name: MONGO_INITDB_ROOT_USERNAME
-          value: 'myappuser'
+          valueFrom:
+              secretKeyRef:
+                name: payment-database-secret-config
+                key: username
         - name: MONGO_INITDB_ROOT_PASSWORD
-          value: 'myapppassword'
+          valueFrom:
+              secretKeyRef:
+                name: payment-database-secret-config
+                key: password
         volumeMounts:
         - name: "mongo-data-dir"
           mountPath: "/data/db"
