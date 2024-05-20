@@ -82,8 +82,7 @@ jobs:
     name: Deployment
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    # needs: codacy-security-scan
-    needs: build
+    needs: codacy-security-scan
 
     steps:
     - name: Set short git commit SHA
