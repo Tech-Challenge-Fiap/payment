@@ -24,6 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pylint
+        pip install coverage
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py') --fail-under 1
@@ -31,7 +32,15 @@ jobs:
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
     - name: Test Backend
       run: |
-        python -m unittest discover -s tests -p 'test_*'
+        coverage run --source=./system -m unittest discover -s tests -p 'test_*'
+    - name: Export Coverage
+      run: |
+        export CODACY_API_TOKEN=${{secrets.CODACY_API_TOKEN}}
+        export CODACY_ORGANIZATION_PROVIDER=gh
+        export CODACY_USERNAME=Tech-Challenge-Fiap
+        export CODACY_PROJECT_NAME=catalog
+        coverage xml
+        bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
   codacy-security-scan:
     needs: build
     permissions:
