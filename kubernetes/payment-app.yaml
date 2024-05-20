@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: payment-app
-        image: barbosaleandro/payment:latest
+        image: DOCKER_IMAGE
         resources:
           limits:
             memory: "128Mi"

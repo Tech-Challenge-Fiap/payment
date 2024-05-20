@@ -6,6 +6,7 @@ blinker==1.6.2
 certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
+coverage==7.5.1
 dnspython==2.6.1
 Flask==3.0.0
 Flask-RESTful==0.3.10
@@ -29,7 +30,7 @@ six==1.16.0
 SQLAlchemy==2.0.21
 typing_extensions==4.8.0
 urllib3==2.2.1
-Werkzeug==3.0.0
 zipp==3.18.1
 behave==1.2.6
 pytest==8.2.0
+Werkzeug>=3.0.3

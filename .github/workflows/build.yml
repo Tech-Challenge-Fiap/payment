@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 env:
-  ECR_REPOSITORY: fiaptech_challenge_g31
+  ECR_REPOSITORY: payment
   EKS_CLUSTER_NAME: fiaptc-cluster 
   AWS_REGION: us-east-2
 
@@ -20,103 +20,121 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.8
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v3
     - name: Install Pylint
       run: |
         python -m pip install --upgrade pip
         pip install pylint
+        pip install coverage
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py') --fail-under 1
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
     - name: Test Backend
       run: |
-        python -m unittest discover -s tests -p 'test_*'
-  codacy-security-scan:
-    needs: build
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
-    name: Codacy Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
-      - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
-        with:
-          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
-          # You can also omit the token and run the tools that support default configurationsa2m5OAkSDj824nJ3Z7da
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          verbose: true
-          output: results.sarif
-          format: sarif
-          # Adjust severity of non-security issues
-          gh-code-scanning-compat: true
-          # Force 0 exit code to allow SARIF file generation
-          # This will handover control about PR rejection to the GitHub side
-          max-allowed-issues: 2147483647
-
-      # Upload the SARIF file generated in the previous step
-      - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: results.sarif
-
-  # deploy:
-  #   name: Deployment
-  #   if: github.ref == 'refs/heads/main'
+        coverage run --source=./system -m unittest discover -s tests -p 'test_*'
+    - name: Export Coverage
+      run: |
+        export CODACY_API_TOKEN=${{secrets.CODACY_API_TOKEN}}
+        export CODACY_ORGANIZATION_PROVIDER=gh
+        export CODACY_USERNAME=Tech-Challenge-Fiap
+        export CODACY_PROJECT_NAME=catalog
+        coverage xml
+        bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
+  # codacy-security-scan:
+  #   needs: build
+  #   permissions:
+  #     contents: read # for actions/checkout to fetch code
+  #     security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+  #     actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+  #   name: Codacy Security Scan
   #   runs-on: ubuntu-latest
-  #   needs: codacy-security-scan
-
   #   steps:
+  #     # Checkout the repository to the GitHub Actions runner
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-  #   - name: Set short git commit SHA
-  #     id: commit
-  #     uses: prompt/actions-commit-hash@v2
+  #     # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
+  #     - name: Run Codacy Analysis CLI
+  #       uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
+  #       with:
+  #         # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
+  #         # You can also omit the token and run the tools that support default configurationsa2m5OAkSDj824nJ3Z7da
+  #         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  #         verbose: true
+  #         output: results.sarif
+  #         format: sarif
+  #         # Adjust severity of non-security issues
+  #         gh-code-scanning-compat: true
+  #         # Force 0 exit code to allow SARIF file generation
+  #         # This will handover control about PR rejection to the GitHub side
+  #         max-allowed-issues: 2147483647
 
-  #   - name: Check out code
-  #     uses: actions/checkout@v2
+  #     # Upload the SARIF file generated in the previous step
+  #     - name: Upload SARIF results file
+  #       uses: github/codeql-action/upload-sarif@v2
+  #       with:
+  #         sarif_file: results.sarif
+
+  deploy:
+    name: Deployment
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Set short git commit SHA
+      id: commit
+      uses: prompt/actions-commit-hash@v2
+
+    - name: Check out code
+      uses: actions/checkout@v2
     
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{env.AWS_REGION}}
+    - name: Downgrade kubectl client
+      run: |
+        curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.12/2024-04-19/bin/linux/amd64/kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
 
-  #   - name: Login to Amazon ECR
-  #     id: login-ecr
-  #     uses: aws-actions/amazon-ecr-login@v1
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{env.AWS_REGION}}
 
-  #   - name: Build, tag, and push image to Amazon ECR
-  #     env:
-  #       ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}        
-  #       IMAGE_TAG: ${{ steps.commit.outputs.short }}
-  #     run: |
-  #       docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-  #       docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
 
-  #   - name: Update kube config
-  #     run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION && kubectl config current-context
+    - name: Build, tag, and push image to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}        
+        IMAGE_TAG: ${{ steps.commit.outputs.short }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  #   - name: Deploy to EKS
-  #     env:
-  #       ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}        
-  #       IMAGE_TAG: ${{ steps.commit.outputs.short }}
-  #     run: |
-  #       kubectl version && \
-  #       kubectl config current-context && \
-  #       sed -i.bak "s|DOCKER_IMAGE|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" kubernetes/tech-challenge-app.yaml && \
-  #       sed -i.bak "s,VAL_POSTGRES_DB_NAME,${{secrets.DB_NAME}}," kubernetes/tech-challenge-app.yaml && \
-  #       sed -i.bak "s,VAL_POSTGRES_DB_USER,${{secrets.DB_USER}}," kubernetes/tech-challenge-app.yaml && \
-  #       sed -i.bak "s,VAL_POSTGRES_DB_PASSWORD,${{secrets.DB_PASSWORD}}," kubernetes/tech-challenge-app.yaml && \
-  #       sed -i.bak "s,VAL_POSTGRES_DB_HOST,${{secrets.DB_HOST}}," kubernetes/tech-challenge-app.yaml && \
-  #       kubectl apply -f kubernetes/tech-challenge-app.yaml
-  #       kubectl apply -f kubernetes/tech-challenge-svc.yaml
-  #       kubectl apply -f kubernetes/metrics.yaml
-  #       kubectl apply -f kubernetes/hpa.yaml
+    - name: Update kube config
+      run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION && kubectl config current-context
+
+    - name: Deploy to EKS
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}        
+        IMAGE_TAG: ${{ steps.commit.outputs.short }}
+      run: |
+        kubectl version
+        kubectl config current-context
+        sed -i.bak "s|DOCKER_IMAGE|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" kubernetes/payment-app.yaml
+        sed -i.bak "s,VAL_MONGO_DB_USER,${{secrets.DB_USER}}," kubernetes/mongo/mongo-db-secrets.yaml
+        sed -i.bak "s,VAL_MONGO_DB_PASSWORD,${{secrets.DB_PASSWORD}}," kubernetes/mongo/mongo-db-secrets.yaml
+        kubectl apply -f kubernetes/mongo
+        kubectl apply -f kubernetes/payment-app.yaml
+        kubectl apply -f kubernetes/payment-svc.yaml
+        kubectl apply -f kubernetes/metrics.yaml
+        kubectl apply -f kubernetes/hpa.yaml
