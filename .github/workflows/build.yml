@@ -87,6 +87,7 @@ jobs:
         curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.12/2024-04-19/bin/linux/amd64/kubectl
         chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
