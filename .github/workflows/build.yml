@@ -20,7 +20,7 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.8
-    - name: Install Pylint and Coverage
+    - name: Install Pylint
       run: |
         python -m pip install --upgrade pip
         pip install pylint
@@ -38,11 +38,9 @@ jobs:
         export CODACY_API_TOKEN=${{secrets.CODACY_API_TOKEN}}
         export CODACY_ORGANIZATION_PROVIDER=gh
         export CODACY_USERNAME=Tech-Challenge-Fiap
-        export CODACY_PROJECT_NAME=payment
+        export CODACY_PROJECT_NAME=catalog
         coverage xml
         bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
-
-        
   codacy-security-scan:
     needs: build
     permissions:
