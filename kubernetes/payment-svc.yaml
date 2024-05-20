@@ -2,13 +2,19 @@ apiVersion: v1
 kind: Service
 metadata:
   name: payment-svc
-  namespace: "default"
   labels:
     app: payment-app
+    service: payment-app
 spec:
-  type: LoadBalancer
   ports:
   - port: 5000
-    targetPort: 5000
+    name: http
   selector:
     app: payment-app
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: delivery-payment
+  labels:
+    account: payment
