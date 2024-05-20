@@ -35,11 +35,6 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py') --fail-under 1
-<<<<<<< HEAD
-=======
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
->>>>>>> master
     - name: Test Backend
       run: |
         coverage run --source=./system -m unittest discover -s tests -p 'test_*'
