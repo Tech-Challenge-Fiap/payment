@@ -1,0 +1,22 @@
+[run]
+omit =
+    /usr/lib/python3/dist-packages/cryptography/*
+    /usr/lib/python3/dist-packages/jwt/*
+    /usr/lib/python3/dist-packages/six.py
+    system/infrastructure/adapters/*
+    tests/*
+
+[report]
+show_missing = True
+skip_covered = True
+
+[html]
+directory = htmlcov
+
+[exclude_lines]
+pragma: no cover
+    def _repr_
+    if self\.debug:
+    raise AssertionError
+    raise NotImplementedError
+if _name_ == ._main_.:
