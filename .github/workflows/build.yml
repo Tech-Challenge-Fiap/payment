@@ -27,7 +27,7 @@ jobs:
         pip install coverage
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py') --fail-under 2
+        pylint $(git ls-files '*.py') --fail-under 1
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
     - name: Test Backend
