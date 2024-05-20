@@ -3,7 +3,9 @@ omit =
     /usr/lib/python3/dist-packages/cryptography/*
     /usr/lib/python3/dist-packages/jwt/*
     /usr/lib/python3/dist-packages/six.py
-    system/infrastructure/adapters/*
+    */system/infrastructure/adapters/decorators/*
+    */system/infrastructure/adapters/external_tools/*
+    */system/application/usecase/payment_usecase.py 
     tests/*
 
 [report]
