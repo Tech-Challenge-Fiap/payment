@@ -4,7 +4,6 @@ from pydantic import ValidationError
 from system.application.exceptions.default_exceptions import InfrastructureError
 from system.application.exceptions.payment_exceptions import PaymentDoesNotExistsError
 from system.application.usecase import payment_usecase
-from system.infrastructure.adapters.decorators.jwt_decorator import require_auth
 
 
 @app.route("/webhook/update_payment", methods=["POST"])
@@ -28,7 +27,6 @@ def update_payment():
 
 
 @app.route("/create_payment", methods=["POST"])
-# @require_auth
 def create_payment():
     try:
         request_json = request.get_json()
@@ -43,7 +41,6 @@ def create_payment():
 
 
 @app.route("/get_payments", methods=["GET"])
-# @require_auth
 def get_payments():
     try:
         payment = payment_usecase.GetPayments.execute()
