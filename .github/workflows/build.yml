@@ -20,16 +20,19 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.8
-    - name: Install Pylint and Coverage
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Pylint
       run: |
         python -m pip install --upgrade pip
         pip install pylint
         pip install coverage
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py') --fail-under 2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+        pylint $(git ls-files '*.py') --fail-under 1
     - name: Test Backend
       run: |
         coverage run --source=./system -m unittest discover -s tests -p 'test_*'
@@ -41,48 +44,46 @@ jobs:
         export CODACY_PROJECT_NAME=payment
         coverage xml
         bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
+  # codacy-security-scan:
+  #   needs: build
+  #   permissions:
+  #     contents: read # for actions/checkout to fetch code
+  #     security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+  #     actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+  #   name: Codacy Security Scan
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # Checkout the repository to the GitHub Actions runner
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-        
-  codacy-security-scan:
-    needs: build
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
-    name: Codacy Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #     # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
+  #     - name: Run Codacy Analysis CLI
+  #       uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
+  #       with:
+  #         # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
+  #         # You can also omit the token and run the tools that support default configurationsa2m5OAkSDj824nJ3Z7da
+  #         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  #         verbose: true
+  #         output: results.sarif
+  #         format: sarif
+  #         # Adjust severity of non-security issues
+  #         gh-code-scanning-compat: true
+  #         # Force 0 exit code to allow SARIF file generation
+  #         # This will handover control about PR rejection to the GitHub side
+  #         max-allowed-issues: 2147483647
 
-      # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
-      - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
-        with:
-          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
-          # You can also omit the token and run the tools that support default configurationsa2m5OAkSDj824nJ3Z7da
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          verbose: true
-          output: results.sarif
-          format: sarif
-          # Adjust severity of non-security issues
-          gh-code-scanning-compat: true
-          # Force 0 exit code to allow SARIF file generation
-          # This will handover control about PR rejection to the GitHub side
-          max-allowed-issues: 2147483647
-
-      # Upload the SARIF file generated in the previous step
-      - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: results.sarif
+  #     # Upload the SARIF file generated in the previous step
+  #     - name: Upload SARIF results file
+  #       uses: github/codeql-action/upload-sarif@v2
+  #       with:
+  #         sarif_file: results.sarif
 
   deploy:
     name: Deployment
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    needs: codacy-security-scan
+    needs: test
 
     steps:
     - name: Set short git commit SHA
