@@ -74,7 +74,6 @@ jobs:
     needs: codacy-security-scan
 
     steps:
-
     - name: Set short git commit SHA
       id: commit
       uses: prompt/actions-commit-hash@v2
@@ -82,6 +81,11 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
     
+    - name: Downgrade kubectl client
+      run: |
+        curl -LO curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.12/2024-04-19/bin/linux/arm64/kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
