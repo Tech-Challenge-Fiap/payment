@@ -20,29 +20,18 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.8
-    - name: Install Pylint and Coverage
+    - name: Install Pylint
       run: |
         python -m pip install --upgrade pip
         pip install pylint
-        pip install coverage
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files 'system/*.py') --fail-under 0.1
+        pylint $(git ls-files '*.py') --fail-under 1
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
     - name: Test Backend
       run: |
-        coverage run --source=./system -m unittest discover -s tests -p 'test_*'
-    - name: Export Coverage
-      run: |
-        export CODACY_API_TOKEN=${{secrets.CODACY_API_TOKEN}}
-        export CODACY_ORGANIZATION_PROVIDER=gh
-        export CODACY_USERNAME=Tech-Challenge-Fiap
-        export CODACY_PROJECT_NAME=payment
-        coverage xml
-        bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
-
-        
+        python -m unittest discover -s tests -p 'test_*'
   codacy-security-scan:
     needs: build
     permissions:
