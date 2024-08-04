@@ -9,7 +9,8 @@ from system.infrastructure.adapters.database.repositories.payment_repository imp
 )
 from system.infrastructure.adapters.external_tools.order_service import OrderService
 from system.infrastructure.adapters.external_tools.mercado_pago import MercadoPago
-
+from rabbitmq import publish_message
+import json
 
 class UpdatePayment(UseCase, Resource):
     def execute(request_json: dict) -> None:
@@ -27,9 +28,21 @@ class UpdatePayment(UseCase, Resource):
         if payment_info["status"] == "approved":
             PaymentRepository.update_payment_status(payment.id, PaymentStatusEnum.PAID)
             OrderService.update_order_status(payment.id, "RECEIVED")
+
+            message = json.dumps({
+                "order_id": payment.order_id,
+                "status": "RECEIVED",
+            })
+            publish_message('fila-pedidos-saga-callback', message)
         if payment_info["status"] in ("charged_back", "cancelled", "refunded"):
             PaymentRepository.update_payment_status(payment.id, PaymentStatusEnum.CANCELLED)
             OrderService.update_order_status(payment.id, "CANCELED")
+
+            message = json.dumps({
+                "order_id": payment.order_id,
+                "status": "CANCELED",
+            })
+            publish_message('fila-pedidos-saga-callback', message)
 
 
 class CreatePayment(UseCase, Resource):

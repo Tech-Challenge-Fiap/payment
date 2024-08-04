@@ -8,6 +8,7 @@ class PaymentModel(db.Model):
     __tablename__ = "payments"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    order_id = db.Column(db.String)
     qr_code = db.Column(db.String, nullable=True)
     status_updated_at = db.Column(db.DateTime(timezone=True))
     status = db.Column(SQLAlchemyEnum(PaymentStatusEnum), nullable=False)
