@@ -1,16 +1,8 @@
 import pika
 import logging
 from rabbitmq import get_rabbitmq_connection, get_rabbitmq_channel
-from pydantic import ValidationError
 from system.application.exceptions.default_exceptions import InfrastructureError
-from system.application.exceptions.order_exceptions import (
-    OrderDoesNotExistError,
-    OrderUpdateError,
-)
 from system.application.usecase import payment_usecase
-from system.application.dto.requests.payment_request import (
-    UpdateOrderStatusRequest,
-)
 
 logging.basicConfig(level=logging.INFO)
 
