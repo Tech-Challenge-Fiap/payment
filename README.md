@@ -33,6 +33,19 @@ Retorno da Requisição: Depois que a lógica de negócios é processada e os da
 
 Optamos pelo padrão SAGA coreografado por várias razões que se alinham com as necessidades e a arquitetura do nosso sistema. Em primeiro lugar, a complexidade da comunicação entre nossos serviços não é alta. Especificamente, a interação necessária é apenas entre os microsserviços de Orders e Payment, tornando desnecessário o overhead associado a um padrão SAGA orquestrado.
 
+Vantagens do Padrão Coreografado:
+
+1 - Simplicidade na Implementação: Como nossos casos de uso não exigem interações complexas, o padrão coreografado oferece uma abordagem mais simples e direta. Cada serviço apenas precisa emitir eventos e reagir a eventos relevantes, sem a necessidade de um coordenador central para gerenciar a lógica da saga.
+2 - Desacoplamento de Serviços: Esse padrão promove um maior desacoplamento entre os serviços. Como cada microserviço é responsável por sua própria lógica de compensação, a implementação se torna mais modular e menos dependente de um único ponto de falha ou coordenação.
+3 - Facilidade de Escalabilidade: Serviços desacoplados podem ser escalados independentemente. Isso é especialmente vantajoso em arquiteturas de microsserviços, onde diferentes serviços podem ter requisitos de escalabilidade diferentes.
+4 - Redução de Dependências: Sem a necessidade de um orquestrador central, reduzimos as dependências e a complexidade operacional. Isso também simplifica o processo de deploy e manutenção dos serviços.
+
+Contexto Específico:
+
+No nosso cenário, os serviços de Orders e Payment precisam se comunicar de forma a garantir consistência nas transações, mas essa comunicação é direta e não requer coordenação complexa. O padrão coreografado permite que cada serviço gerencie sua própria lógica de negócios e compensação de forma autônoma, resultando em uma arquitetura mais ágil e menos propensa a erros devido a pontos únicos de falha.
+Portanto, ao escolhermos o padrão SAGA coreografado, garantimos uma solução que é ao mesmo tempo eficaz e eficiente para a nossa necessidade, maximizando a simplicidade sem sacrificar a robustez da comunicação entre os serviços.
+
+
 *Observação: A implementação atual utiliza um sistema de fake checkout em vez de integrar com o serviço real do MercadoPago. O componente 'Fake Checkout' simula o fluxo de pagamento e está contido dentro do container da aplicação web para desenvolvimento e testes. 
 
 # Guia Rápido para Executar a Aplicação Flask
