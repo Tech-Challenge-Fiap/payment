@@ -31,6 +31,8 @@ Aplicação / Caso de Uso: Os DTOs são passados para a lógica de negócios da 
 
 Retorno da Requisição: Depois que a lógica de negócios é processada e os dados são persistidos ou atualizados conforme necessário, os resultados são então mapeados de volta para DTOs e enviados de volta pelos ports e adapters para a interface de usuário ou cliente
 
+Optamos pelo padrão SAGA coreografado por várias razões que se alinham com as necessidades e a arquitetura do nosso sistema. Em primeiro lugar, a complexidade da comunicação entre nossos serviços não é alta. Especificamente, a interação necessária é apenas entre os microsserviços de Orders e Payment, tornando desnecessário o overhead associado a um padrão SAGA orquestrado.
+
 *Observação: A implementação atual utiliza um sistema de fake checkout em vez de integrar com o serviço real do MercadoPago. O componente 'Fake Checkout' simula o fluxo de pagamento e está contido dentro do container da aplicação web para desenvolvimento e testes. 
 
 # Guia Rápido para Executar a Aplicação Flask
