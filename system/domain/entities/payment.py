@@ -7,6 +7,7 @@ from system.domain.enums.enums import PaymentStatusEnum
 
 class PaymentEntity(BaseModel):
     id: Optional[str] = Field(alias="_id", default=None)
+    order_id: Optional[str] = None
     qr_code: Optional[str] = None
     status_updated_at: Optional[datetime] = None
     status: PaymentStatusEnum = PaymentStatusEnum.UNPAID
